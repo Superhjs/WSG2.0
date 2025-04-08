@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Waste Sorting Game</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #f0f0f0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        margin: 0;
+        flex-direction: column;
+        text-align: center;
+    }
+
+    #game {
+        width: 450px;
+        height: 650px;
+        background-color: #222;
+        border: 2px solid #fff;
+        position: relative;
+        overflow: hidden;
+        border-radius: 10px;
+        box-shadow: 0 0 20px rgba(0,0,0,0.3);
+        display: none;
+    }
+
+    .waste-item {
+        width: 90%;
+        text-align: center;
+        font-size: 24px;
+        color: #fff;
+        padding: 15px;
+        box-sizing: border-box;
+        position: absolute;
+        top: -80px;
+        left: 5%;
+        border-radius: 10px;
+        background-color: #444;
+        transition: transform 0.1s;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .waste-item .emoji {
+        font-size: 60px;
+        margin-bottom: 10px;
+        line-height: 1;
+    }
+
+    .key {
+        width: 110px;
+        height: 60px;
+        margin: 15px;
+        background-color: gray;
+        color: white;
+        border: none;
+        font-size: 20px;
+        cursor: pointer;
+        transition: all 0.2s;
+        border-radius: 8px;
+        font-weight: bold;
+    }
+
+    .key:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+    }
+
+    .key:active {
+        transform: translateY(1px);
+    }
+
+    #blue {
+        background-color: #2196F3;
+    }
+
+    #green {
+        background-color: #4CAF50;
+    }
+
+    #black {
+        background-color: #000000;
+    }
+
+    .message {
+        font-size: 28px;
+        color: white;
+        position: absolute;
+        width: 100%;
+        top: 50%;
+        left: 0;
+        transform: translateY(-50%);
+        text-align: center;
+        opacity: 0;
+        transition: opacity 0.5s;
+        z-index: 5;
+    }
+
+    .message.show {
+        opacity: 1;
+    }
+
+    .score {
+        margin-top: 20px;
+        font-size: 28px;
+        color: white;
+        position: absolute;
+        top: 15px;
+        left: 15px;
+    }
+
+    .timer {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        color: white;
+        font-size: 28px;
+    }
+
+    .game-over {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0,0,0,0.8);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        z-index: 10;
+        display: none;
+    }
+
+    .game-over h2 {
+        font-size: 36px;
+        color: white;
+        margin-bottom: 25px;
+    }
+
+    .game-over p {
+        color: white;
+        font-size: 24px;
+        margin-bottom: 15px;
+    }
+
+    .game-over a {
+        display: inline-block;
+        margin: 25px 0;
+        padding: 12px 24px;
+        background-color: #4CAF50;
+        color: white;
+        text-decoration: none;
+        border-radius: 8px;
+        font-size: 20px;
+        transition: all 0.2s;
+    }
+
+    .game-over a:hover {
+        background-color: #45a049;
+        transform: translateY(-2px);
+    }
+
+    .game-over button {
+        font-size: 28px;
+        padding: 12px 24px;
+        cursor: pointer;
+        background-color: #4CAF50;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        transition: all 0.2s;
+        margin-top: 15px;
+    }
+
+    .game-over button:hover {
+        background-color: #45a049;
+        transform: translateY(-2px);
+    }
+
+    .button-container {
+        margin-top: 25px;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .progress-bar {
+        width: 100%;
+        height: 12px;
+        background-color: #444;
+        position: absolute;
+        bottom: 0;
+    }
+
+    .progress {
+        height: 100%;
+        background-color: #4CAF50;
+        width: 0%;
+        transition: width 0.3s;
+    }
+
+    .attribution {
+        position: fixed;
+        bottom: 8px;
+        right: 8px;
+        color: #aaa;
+        font-size: 12px;
+    }
+
+    .mode-selector {
+        margin-bottom: 20px;
+        text-align: center;
+    }
+
+    .mode-title {
+        font-size: 24px;
+        margin-bottom: 15px;
+        color: #333;
+    }
+
+    .mode-btn {
+        padding: 12px 24px;
+        margin: 0 10px;
+        font-size: 18px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        background-color: #FF9800;
+        color: white;
+        font-weight: bold;
+        transition: all 0.2s;
+    }
+
+    .mode-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+
+    .mode-btn.active {
+        background-color: #F44336;
+    }
+
+    #start-screen {
+        text-align: center;
+        max-width: 500px;
+        padding: 20px;
+    }
+
+    #start-screen h1 {
+        color: #333;
+        margin-bottom: 20px;
+    }
+
+    .mode-description {
+        background-color: white;
+        padding: 15px;
+        border-radius: 8px;
+        margin: 15px 0;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    .mode-description h3 {
+        margin-top: 0;
+        color: #2196F3;
+    }
+</style>
+</head>
+<body>
+<div id="start-screen">
+    <h1>Waste Sorting Game</h1>
+    <div class="mode-selector">
+        <div class="mode-title">Select Game Mode:</div>
+        <button class="mode-btn" id="classic-btn">Classic Mode</button>
+        <button class="mode-btn" id="challenge-btn">Challenge Mode</button>
+    </div>
+    
+    <div class="mode-description">
+        <h3>Classic Mode</h3>
+        <p>• Score points for correct sorting</p>
+        <p>• Lose points for mistakes</p>
+        <p>• Win at 100 points</p>
+        <p>• Multiple items appear at once</p>
+    </div>
+    
+    <div class="mode-description">
+        <h3>Challenge Mode</h3>
+        <p>• One mistake ends the game</p>
+        <p>• Items get faster as you score</p>
+        <p>• Unlimited scoring potential</p>
+        <p>• Multiple items at higher levels</p>
+    </div>
+</div>
+
+<div id="game">
+    <div class="mode-selector" style="margin: 10px;">
+        <button class="mode-btn" id="switch-mode-btn">Switch Mode</button>
+    </div>
+    <div id="score" class="score">Score: 0</div>
+    <div id="timer" class="timer">Time: 0s</div>
+    <div id="message" class="message"></div>
+    <div class="progress-bar"><div class="progress" id="progress"></div></div>
+    <div id="game-over" class="game-over">
+        <h2 id="result-title">Game Over!</h2>
+        <p>Your score: <span id="final-score"></span></p>
+        <p id="time-display">Time: <span id="final-time"></span></p>
+        <div id="volunteer-message" style="display: none;">
+            <p>Would you be interested in being SFE volunteer?</p>
+            <a href="https://forms.office.com/Pages/ResponsePage.aspx?id=z8LVIj7OPUSaf9_MAjH3Pw47YZBi2stJllUphkOZig1UQUlPRlRDVVEzRlNWOVVWRE5PTVdPVldDSS4u" target="_blank">Sign Up Here</a>
+        </div>
+        <button onclick="restartGame()">Play Again</button>
+    </div>
+</div>
+
+<div class="button-container">
+    <button class="key" id="blue">Blue</button>
+    <button class="key" id="green">Green</button>
+    <button class="key" id="black">Black</button>
+</div>
+
+<div class="attribution">
+
+</div>
+
+<script>
+    // Game configuration
+    const config = {
+        classic: {
+            initialSpeed: 1500,
+            speedIncrease: 40,
+            minSpeed: 800,
+            correctScore: 10,
+            wrongPenalty: 5,
+            missPenalty: 3,
+            winScore: 100,
+            loseScore: -30,
+            maxActiveItems: 3
+        },
+        challenge: {
+            initialSpeed: 400,
+            speedIncrease: 50,
+            minSpeed: 300,
+            correctScore: 1,
+            wrongPenalty: 999999,
+            missPenalty: 999999,
+            winScore: 999999,
+            loseScore: -1,
+            maxActiveItems: 1,
+            minItemSpacing: 150
+        }
+    };
+
+    // Waste items
+    const wasteItems = {
+        blue: [
+            { name: "Aluminum can", img: "🥤" },
+            { name: "Soup can", img: "🥫" },
+            { name: "Newspaper", img: "📰" },
+            { name: "Cardboard box", img: "📦" },
+            { name: "Magazine", img: "📚" },
+            { name: "Office paper", img: "📄" },
+            { name: "Junk mail", img: "📩" },
+            { name: "Paperback book", img: "📖" },
+            { name: "Paper bag", img: "🛍️" }
+        ],
+        green: [
+            { name: "Apple core", img: "🍎" },
+            { name: "Banana peel", img: "🍌" },
+            { name: "Chicken bones", img: "🍗" },
+            { name: "Cheese", img: "🧀" },
+            { name: "Bread", img: "🍞" },
+            { name: "Coffee grounds", img: "☕" },
+            { name: "Eggshells", img: "🥚" },
+            { name: "Pizza box", img: "🍕" },
+            { name: "Paper napkin", img: "🧻" },
+            { name: "Paper towel", img: "🧻" },
+            { name: "Houseplant", img: "🏡" },
+            { name: "Flowers", img: "🌸" },
+            { name: "Compostable fork", img: "🍴" },
+            { name: "Food scraps", img: "🥗" }
+        ],
+        black: [
+            { name: "Candy wrapper", img: "🍬" },
+            { name: "Ceramic plate", img: "🍽️" },
+            { name: "Window glass", img: "🪟" },
+            { name: "Mirror", img: "🪞" },
+            { name: "Rubber band", img: "🎗️" },
+            { name: "Bubble wrap", img: "🫧" },
+            { name: "Latex glove", img: "🧤" },
+            { name: "Dental floss", img: "🪥" },
+            { name: "Diaper", img: "👶" },
+            { name: "Pet waste", img: "💩" },
+            { name: "Cigarette butt", img: "🚬" },
+            { name: "Broken glass", img: "🪞" }
+        ]
+    };
+
+    // Game elements
+    const gameContainer = document.getElementById("game");
+    const startScreen = document.getElementById("start-screen");
+    const scoreDisplay = document.getElementById("score");
+    const timerDisplay = document.getElementById("timer");
+    const messageDisplay = document.getElementById("message");
+    const gameOverScreen = document.getElementById("game-over");
+    const finalScoreDisplay = document.getElementById("final-score");
+    const finalTimeDisplay = document.getElementById("final-time");
+    const resultTitle = document.getElementById("result-title");
+    const volunteerMessage = document.getElementById("volunteer-message");
+    const progressBar = document.getElementById("progress");
+    const classicBtn = document.getElementById("classic-btn");
+    const challengeBtn = document.getElementById("challenge-btn");
+    const switchModeBtn = document.getElementById("switch-mode-btn");
+    const timeDisplay = document.getElementById("time-display");
+
+    // Game state
+    let state = {
+        score: 0,
+        speed: config.classic.initialSpeed,
+        gameInterval: null,
+        activeItems: [],
+        isGameOver: false,
+        animationFrames: {},
+        startTime: null,
+        currentTime: 0,
+        timerInterval: null,
+        mode: null,
+        difficultyLevel: 1,
+        lastDifficultyIncrease: 0,
+        lastItemTime: 0
+    };
+
+    // Mode selection
+    classicBtn.addEventListener('click', () => {
+        state.mode = 'classic';
+        startGame();
+    });
+
+    challengeBtn.addEventListener('click', () => {
+        state.mode = 'challenge';
+        startGame();
+    });
+
+    switchModeBtn.addEventListener('click', () => {
+        endGame(false, state.score);
+        startScreen.style.display = 'block';
+        gameContainer.style.display = 'none';
+    });
+
+    // Start the game
+    function startGame() {
+        startScreen.style.display = 'none';
+        gameContainer.style.display = 'block';
+        
+        // Reset game state
+        state.score = 0;
+        state.difficultyLevel = 1;
+        state.lastDifficultyIncrease = 0;
+        state.speed = config[state.mode].initialSpeed;
+        state.isGameOver = false;
+        state.activeItems = [];
+        state.animationFrames = {};
+        state.startTime = Date.now();
+        state.currentTime = 0;
+        state.lastItemTime = 0;
+        
+        clearInterval(state.gameInterval);
+        clearInterval(state.timerInterval);
+        
+        // Show/hide elements based on mode
+        if (state.mode === 'challenge') {
+            timerDisplay.style.display = 'none';
+            timeDisplay.style.display = 'none';
+            progressBar.style.display = 'none';
+            config.challenge.maxActiveItems = 1;
+        } else {
+            timerDisplay.style.display = 'block';
+            timeDisplay.style.display = 'block';
+            progressBar.style.display = 'block';
+        }
+        
+        updateScore();
+        startTimer();
+        startFallingItems();
+        gameOverScreen.style.display = "none";
+        volunteerMessage.style.display = "none";
+        hideMessage();
+        
+        const items = document.querySelectorAll('.waste-item');
+        items.forEach(item => item.remove());
+    }
+
+    // Timer function
+    function startTimer() {
+        state.timerInterval = setInterval(() => {
+            if (state.isGameOver) return;
+            state.currentTime = Math.floor((Date.now() - state.startTime) / 1000);
+            timerDisplay.textContent = `Time: ${state.currentTime}s`;
+        }, 1000);
+    }
+
+    // Update score display and difficulty
+    function updateScore() {
+        scoreDisplay.textContent = "Score: " + state.score;
+        
+        if (state.mode === 'classic') {
+            progressBar.style.width = `${Math.max(0, (state.score + 30) / (config.classic.winScore + 30) * 100)}%`;
+            state.speed = Math.max(
+                config.classic.minSpeed, 
+                config.classic.initialSpeed - (Math.floor(state.score / 10) * config.classic.speedIncrease)
+            );
+        } else {
+            // Challenge mode difficulty increases at 5, 15, 25, 35... points
+            if (state.score >= state.lastDifficultyIncrease + 10 || 
+                (state.difficultyLevel === 1 && state.score >= 5)) {
+                
+                state.difficultyLevel = Math.max(1, Math.floor((state.score - 5) / 10) + 1);
+                state.lastDifficultyIncrease = Math.max(5, Math.floor(state.score / 10) * 10 + 5);
+                
+                // Adjust speed and max items based on difficulty
+                state.speed = Math.max(
+                    config.challenge.minSpeed, 
+                    config.challenge.initialSpeed - (state.difficultyLevel * 50)
+                );
+                
+                config.challenge.maxActiveItems = Math.min(3, Math.floor(state.difficultyLevel / 2) + 1);
+            }
+        }
+    }
+
+    // Show temporary message
+    function showMessage(text, isCorrect) {
+        messageDisplay.textContent = text;
+        messageDisplay.style.color = isCorrect ? "#4CAF50" : "#F44336";
+        messageDisplay.classList.add('show');
+        
+        setTimeout(hideMessage, 1000);
+    }
+
+    function hideMessage() {
+        messageDisplay.classList.remove('show');
+    }
+
+    // Handle button clicks
+    document.getElementById("blue").addEventListener("click", () => checkAnswer("blue"));
+    document.getElementById("green").addEventListener("click", () => checkAnswer("green"));
+    document.getElementById("black").addEventListener("click", () => checkAnswer("black"));
+
+    // Check if answer is correct for the lowest item
+    function checkAnswer(color) {
+        if (state.isGameOver || state.activeItems.length === 0) return;
+
+        // Find the lowest (most advanced) item
+        let lowestItem = null;
+        let lowestPosition = 0;
+        
+        state.activeItems.forEach(item => {
+            const position = parseInt(item.element.style.top);
+            if (position > lowestPosition) {
+                lowestPosition = position;
+                lowestItem = item;
+            }
+        });
+
+        if (!lowestItem) return;
+
+        const currentConfig = config[state.mode];
+        let isCorrect = wasteItems[color].some(waste => waste.name === lowestItem.data.name);
+        
+        if (isCorrect) {
+            state.score += currentConfig.correctScore;
+            showMessage("Correct!", true);
+            removeWasteItem(lowestItem.element);
+            updateScore();
+        } else {
+            // For Challenge Mode, immediately end game on wrong answer
+            if (state.mode === 'challenge') {
+                showMessage("Incorrect!", false);
+                endGame(false, state.score); // Pass actual score to endGame
+                return;
+            } else {
+                // Classic Mode behavior
+                state.score -= currentConfig.wrongPenalty;
+                showMessage("Incorrect!", false);
+            }
+        }
+
+        updateScore();
+        checkGameState();
+    }
+
+    // Start dropping items with proper spacing
+    function startFallingItems() {
+        if (state.gameInterval) clearInterval(state.gameInterval);
+        
+        state.gameInterval = setInterval(() => {
+            if (state.isGameOver) return;
+            
+            // Check if we can add a new item (considering max items and spacing)
+            if (state.activeItems.length >= config[state.mode].maxActiveItems) return;
+            
+            // In challenge mode, ensure minimum spacing between items
+            if (state.mode === 'challenge' && state.activeItems.length > 0) {
+                const now = Date.now();
+                const timeSinceLastItem = now - state.lastItemTime;
+                const minTimeBetweenItems = 1000 / (state.speed / config.challenge.minItemSpacing);
+                
+                if (timeSinceLastItem < minTimeBetweenItems) {
+                    return;
+                }
+            }
+            
+            const waste = getRandomWasteItem();
+            createWasteItem(waste);
+            state.lastItemTime = Date.now();
+        }, state.speed);
+    }
+
+    // Get random waste item
+    function getRandomWasteItem() {
+        const categories = Object.keys(wasteItems);
+        const category = categories[Math.floor(Math.random() * categories.length)];
+        const item = wasteItems[category][Math.floor(Math.random() * wasteItems[category].length)];
+        return { name: item.name, img: item.img, category };
+    }
+
+    // Create falling item with emoji
+    function createWasteItem(waste) {
+        const itemElement = document.createElement("div");
+        itemElement.classList.add("waste-item");
+        
+        const emojiElement = document.createElement("div");
+        emojiElement.className = "emoji";
+        emojiElement.textContent = waste.img;
+        
+        const textElement = document.createElement("div");
+        textElement.textContent = waste.name;
+        
+        itemElement.appendChild(emojiElement);
+        itemElement.appendChild(textElement);
+        itemElement.style.top = "-80px";
+        gameContainer.appendChild(itemElement);
+
+        const itemId = Date.now() + Math.random().toString(36).substr(2, 9);
+        itemElement.dataset.id = itemId;
+        
+        const itemData = {
+            id: itemId,
+            element: itemElement,
+            data: waste
+        };
+        
+        state.activeItems.push(itemData);
+        animateItem(itemData);
+    }
+
+    // Animate item falling
+    function animateItem(itemData) {
+        let pos = -80;
+        const baseSpeed = 2;
+        const speedMultiplier = state.mode === 'challenge' ? (1 + state.difficultyLevel * 0.2) : 1;
+        const animationSpeed = baseSpeed * speedMultiplier + (config[state.mode].initialSpeed - state.speed) / 200;
+        
+        function frame() {
+            if (state.isGameOver) return;
+            
+            pos += animationSpeed;
+            itemData.element.style.top = pos + "px";
+
+            if (pos >= 600) {
+                if (!state.isGameOver) {
+                    state.score -= config[state.mode].missPenalty;
+                    updateScore();
+                    checkGameState();
+                }
+                removeWasteItem(itemData.element);
+                return;
+            }
+
+            state.animationFrames[itemData.id] = requestAnimationFrame(frame);
+        }
+
+        frame();
+    }
+
+    // Remove waste item
+    function removeWasteItem(element) {
+        if (!element) return;
+        
+        const itemId = element.dataset.id;
+        
+        if (state.animationFrames[itemId]) {
+            cancelAnimationFrame(state.animationFrames[itemId]);
+            delete state.animationFrames[itemId];
+        }
+        
+        state.activeItems = state.activeItems.filter(item => item.id !== itemId);
+        
+        if (element.parentNode) {
+            element.remove();
+        }
+    }
+
+    // Check game state (win/lose)
+ function checkGameState() {
+        const currentConfig = config[state.mode];
+        
+        if (state.mode === 'classic' && state.score >= currentConfig.winScore) {
+            resultTitle.textContent = "Great Job!";
+            showMessage("Would you be interested in being SFE volunteer?", true);
+            endGame(true, state.score);
+        } else if (state.score <= currentConfig.loseScore) {
+            resultTitle.textContent = state.mode === 'challenge' ? "Game Over!" : "Let's Try Again!";
+            showMessage(state.mode === 'challenge' ? "Try Again!" : "Let's Try Again!", false);
+            // For Challenge Mode, pass the actual score before penalty was applied
+            endGame(false, state.mode === 'challenge' ? state.score + currentConfig.missPenalty : state.score);
+        }
+    }
+
+    // End the game - Now properly shows actual score
+    function endGame(isWin, actualScore) {
+        state.isGameOver = true;
+        clearInterval(state.gameInterval);
+        clearInterval(state.timerInterval);
+        
+        Object.values(state.animationFrames).forEach(frame => {
+            cancelAnimationFrame(frame);
+        });
+        
+        // Always show the actual score
+        finalScoreDisplay.textContent = actualScore;
+        finalTimeDisplay.textContent = `${state.currentTime} seconds`;
+        
+        volunteerMessage.style.display = (isWin && state.mode === 'classic') ? "block" : "none";
+        
+        gameOverScreen.style.display = "flex";
+    }
+
+    // Restart game
+    function restartGame() {
+        startGame();
+    }
+</script>
+</body>
+</html>
